@@ -1,43 +1,29 @@
+
 services:
   vote:
-    build: 
-      context: ./vote
-      target: dev
+    image: dockersamples/examplevotingapp_vote
     depends_on:
       redis:
-        condition: service_healthy
-    healthcheck: 
-      test: ["CMD", "curl", "-f", "http://localhost"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-    volumes:
-     - ./vote:/usr/local/app
+        condition: service_healthy 
     ports:
-      - "5002:80"
+      - "5000:80"
     networks:
       - front-tier
       - back-tier
 
   result:
-    build: ./result
-    entrypoint: nodemon --inspect=0.0.0.0 server.js
+    image: dockersamples/examplevotingapp_result
     depends_on:
       db:
         condition: service_healthy 
-    volumes:
-      - ./result:/usr/local/app
     ports:
       - "5001:80"
-      - "127.0.0.1:9229:9229"
     networks:
       - front-tier
       - back-tier
 
   worker:
-    build:
-      context: ./worker
+    image: dockersamples/examplevotingapp_worker
     depends_on:
       redis:
         condition: service_healthy 
@@ -69,16 +55,6 @@ services:
       interval: "5s"
     networks:
       - back-tier
-
-  seed:
-    build: ./seed-data
-    profiles: ["seed"]
-    depends_on:
-      vote:
-        condition: service_healthy 
-    networks:
-      - front-tier
-    restart: "no"
 
 volumes:
   db-data:
